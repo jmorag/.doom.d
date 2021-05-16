@@ -108,16 +108,15 @@
   :ryo
   ("u" undo-fu-only-undo)
   ("U" undo-fu-only-redo))
-
-;; (use-package! helm
-;;   :bind (:map helm-map
-;;          ("C-j" . helm-next-line)
-;;          ("C-k" . helm-previous-line)
-;;          ("TAB" . helm-execute-persistent-action)
-;;          ("<tab>" . helm-execute-persistent-action)
-;;          ("C-z" . helm-select-action))
-;;   :ryo
-;;   ("P" helm-show-kill-ring))
+(use-package! helm
+  :bind (:map helm-map
+         ("C-j" . helm-next-line)
+         ("C-k" . helm-previous-line)
+         ("TAB" . helm-execute-persistent-action)
+         ("<tab>" . helm-execute-persistent-action)
+         ("C-z" . helm-select-action))
+  :ryo
+  ("P" helm-show-kill-ring))
 
 (use-package! ivy
   :bind (:map ivy-minibuffer-map
