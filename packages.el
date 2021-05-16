@@ -61,3 +61,8 @@
 (package! phi-search)
 (package! plus-minus :recipe
   (:host github :repo "peterwu/plus-minus" :branch "main"))
+(package! dired-hacks-utils)
+(package! dired-filter)
+(package! dired-subtree)
+(package! dired-narrow)
+(package! peep-dired)

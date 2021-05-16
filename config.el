@@ -213,6 +213,36 @@
                                   "--header-insertion=never"))
   (set-lsp-priority! 'clangd 2))
 
-(use-package! notmuch
+(use-package! dired-hacks-utils
   :config
-  (setq notmuch-always-prompt-for-sender t))
+  (map! :map dired-mode-map
+        ";" #'wdired-change-to-wdired-mode
+        "h" #'dired-up-directory
+        "j" #'dired-hacks-next-file
+        "k" #'dired-hacks-previous-file
+        "l" #'dired-find-alternate-file
+        "K" #'dired-do-kill-lines
+        :leader
+        :desc "Dired" "d" #'dired-jump))
+
+(use-package! dired-narrow
+  :bind (:map dired-mode-map
+         ("f" . dired-narrow)
+         ("/" . dired-narrow)))
+
+(use-package! dired-subtree
+  :bind (:map dired-mode-map
+         ("i" . dired-subtree-toggle)
+         ("C-j" . dired-subtree-next-sibling)
+         ("C-k" . dired-subtree-previous-sibling)))
+
+(use-package! peep-dired
+  :custom
+  (peed-dired-cleanup-on-disable t)
+  (peep-dired-enable-on-directories t)
+  :bind (:map dired-mode-map
+         ("p" . peep-dired)
+         :map peep-dired-mode-map
+         ("j" . peep-dired-next-file)
+         ("k" . peep-dired-prev-file)))
+
