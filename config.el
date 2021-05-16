@@ -143,6 +143,7 @@
 
 (map!
  "C-z" nil
+ "C-;" nil
  (:map special-mode-map "j" #'next-line "k" #'previous-line)
  (:map ryo-modal-mode-map
   "SPC" doom-leader-map
@@ -172,7 +173,9 @@
   (:when (featurep! :completion helm)
    "b" #'helm-mini)
   (:when (featurep! :editor format)
-   :desc "Format buffer/region"   "="   #'+format/region-or-buffer)))
+   :desc "Format buffer/region"   "="   #'+format/region-or-buffer)
+  (:when (featurep! :email notmuch)
+   :desc "notmuch" "o m" #'notmuch)))
 
 (after! projectile
   (define-key ryo-modal-mode-map (kbd "SPC p") 'projectile-command-map)
@@ -246,3 +249,17 @@
          ("j" . peep-dired-next-file)
          ("k" . peep-dired-prev-file)))
 
+(use-package! magit
+  :bind
+  (:map magit-status-mode-map
+   ("j" . magit-section-forward)
+   ("k" . magit-section-backward)
+   ("C-j" . magit-section-forward-sibling)
+   ("C-k" . magit-section-backward-sibling)
+   ("g" . magit-status-jump)
+   ("p" . magit-push)
+   ("P" . magit-pull)
+   ("M-k" . magit-discard)
+   :map magit-log-mode-map
+   ("j" . magit-section-forward)
+   ("k" . magit-section-backward)))
