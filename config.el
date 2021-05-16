@@ -86,30 +86,22 @@
    ("C-u" scroll-down-command :first '(deactivate-mark))
    ("C-d" scroll-up-command :first '(deactivate-mark))
    ("!" shell-command)
-   ("&" async-shell-command)))
+   ("&" async-shell-command))
+  :config
+  (add-hook! (prog-mode org-mode markdown-mode) #'ryo-modal-mode))
 
 (use-package! key-seq
   :init
   (key-chord-mode 1)
   (defun ryo-enter () (interactive) (ryo-modal-mode 1))
-  (key-seq-define-global "fd" 'ryo-enter)
-  (global-set-key (kbd "<escape>") 'ryo-enter)
-  (add-hook! prog-mode :append 'ryo-enter))
+  (key-seq-define-global "fd" #'ryo-enter)
+  (global-set-key (kbd "<escape>") #'ryo-enter))
 
-(after! (ryo-modal lispy)
-  (add-hook 'ryo-modal-mode-hook
-            (lambda ()
-              (when (find major-mode lisp-modes)
-                (if (bound-and-true-p ryo-modal-mode)
-                    (lispy-mode -1)
-                  (lispy-mode 1))))))
-(defconst lisp-modes
-  '(racket-mode emacs-lisp-mode clojure-mode scheme-mode lisp-mode lisp-interaction-mode))
 (use-package! aggressive-indent
   :config
-  (dolist (mode lisp-modes)
-    (add-hook
-     (intern (concat (symbol-name mode) "-hook")) 'aggressive-indent-mode)))
+  (add-hook!
+    (racket-mode emacs-lisp-mode clojure-mode scheme-mode lisp-mode lisp-interaction-mode)
+    #'aggressive-indent-mode))
 (electric-pair-mode 1)
 
 (use-package! undo-fu
