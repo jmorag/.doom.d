@@ -108,6 +108,7 @@
   :ryo
   ("u" undo-fu-only-undo)
   ("U" undo-fu-only-redo))
+
 (use-package! helm
   :bind (:map helm-map
          ("C-j" . helm-next-line)
@@ -118,7 +119,13 @@
   :ryo
   ("P" helm-show-kill-ring))
 
+(use-package! helm-bibtex
+  :custom ((helm-bibtex-full-frame nil)
+           (bibtex-completion-bibliography '("~/NYU/references/papers.bib"))
+           (bibtex-completion-library-path '("~/NYU/references/"))))
+
 (use-package! ivy
+  :custom (ivy-wrap nil)
   :bind (:map ivy-minibuffer-map
          ("C-j" . ivy-next-line)
          ("C-k" . ivy-previous-line)))
@@ -146,13 +153,16 @@
  "C-;" nil
  (:map special-mode-map "j" #'next-line "k" #'previous-line)
  (:map ryo-modal-mode-map
+  (:when (featurep! :ui hydra)
+   "C-w" #'+hydra/window-nav/body)
   "SPC" doom-leader-map
   :desc "Undo window config"           "[ w" #'winner-undo
   :desc "Redo window config"           "] w" #'winner-redo
   :desc "Search buffer"                 "/"   #'+default/search-buffer
   (:when (featurep! :ui vc-gutter)
    :desc "Jump to next hunk"          "] g"   #'git-gutter:next-hunk
-   :desc "Jump to previous hunk"      "[ g"   #'git-gutter:previous-hunk))
+   :desc "Jump to previous hunk"      "[ g"   #'git-gutter:previous-hunk
+   :desc "Revert hunk"                "g R"   #'git-gutter:revert-hunk))
  (:leader
   (:when (featurep! :ui workspaces)
    :desc "Switch to 1st workspace" "1" #'+workspace/switch-to-0
@@ -169,13 +179,11 @@
   (:when (featurep! :tools magit)
    :desc "Magit status"  "g"   #'magit-status
    (:when (featurep! :ui hydra)
-    :desc "SMerge"  "v m"   #'+vc/smerge-hydra/body))
+    :desc "SMerge"  "s"   #'+vc/smerge-hydra/body))
   (:when (featurep! :completion helm)
    "b" #'helm-mini)
   (:when (featurep! :editor format)
-   :desc "Format buffer/region"   "="   #'+format/region-or-buffer)
-  (:when (featurep! :email notmuch)
-   :desc "notmuch" "o m" #'notmuch)))
+   :desc "Format buffer/region"   "="   #'+format/region-or-buffer)))
 
 (after! projectile
   (define-key ryo-modal-mode-map (kbd "SPC p") 'projectile-command-map)
@@ -262,4 +270,110 @@
    ("M-k" . magit-discard)
    :map magit-log-mode-map
    ("j" . magit-section-forward)
-   ("k" . magit-section-backward)))
+   ("k" . magit-section-backward))
+  :config
+  (transient-append-suffix 'magit-merge 'magit-merge:--strategy-option
+    '("-a" "Allow unrelated histories" "--allow-unrelated-histories")))
+
+(use-package! haskell-mode
+  :hook
+  (haskell-mode . (lambda ()
+                    (haskell-indentation-mode 0)
+                    (haskell-decl-scan-mode 1))))
+
+(map! :map +doom-dashboard-mode-map
+      "j" #'+doom-dashboard/forward-button
+      "k" #'+doom-dashboard/backward-button)
+
+;; Bookmarks - https://github.com/joodland/bm
+(use-package! bm
+  :custom
+  ((bm-cycle-all-buffers t)
+   (bm-marker 'bm-marker-right))
+  :ryo
+  ("z" bm-toggle)
+  ("] z" bm-next)
+  ("[ z" bm-previous)
+  :config
+  ;; Loading the repository from file when on start up.
+  (add-hook 'after-init-hook 'bm-repository-load)
+
+  ;; Saving bookmarks
+  (add-hook 'kill-buffer-hook #'bm-buffer-save)
+
+  ;; Saving the repository to file when on exit.
+  ;; kill-buffer-hook is not called when Emacs is killed, so we
+  ;; must save all bookmarks first.
+  (add-hook 'kill-emacs-hook #'(lambda nil
+                                 (bm-buffer-save-all)
+                                 (bm-repository-save)))
+
+  ;; The `after-save-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state.
+  (add-hook 'after-save-hook #'bm-buffer-save)
+
+  ;; Restoring bookmarks
+  (add-hook 'find-file-hooks   #'bm-buffer-restore)
+  (add-hook 'after-revert-hook #'bm-buffer-restore)
+
+  ;; The `after-revert-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state. This hook might cause trouble when using packages
+  ;; that automatically reverts the buffer (like vc after a check-in).
+  ;; This can easily be avoided if the package provides a hook that is
+  ;; called before the buffer is reverted (like `vc-before-checkin-hook').
+  ;; Then new bookmarks can be saved before the buffer is reverted.
+  ;; Make sure bookmarks is saved before check-in (and revert-buffer)
+  (add-hook 'vc-before-checkin-hook #'bm-buffer-save))
+
+(use-package! disk-usage
+  :bind (:map disk-usage-mode-map
+         ("j" . next-line)
+         ("k" . previous-line)
+         ("H" . disk-usage-toggle-human-readable)
+         ("h" . disk-usage-up)
+         :map dired-mode-map
+         ("," . disk-usage-here)))
+
+(use-package! git-timemachine
+  :ryo
+  ("SPC G" git-timemachine)
+  :bind
+  (:map git-timemachine-mode-map
+   ("j" . git-timemachine-show-next-revision)
+   ("k" . git-timemachine-show-previous-revision)
+   ("," . write-file)))
+
+(use-package! git-link)
+
+(use-package! popper
+  ;; Use emacs native window display options
+  :custom (popper-display-control nil)
+  :ryo
+  ("q" popper-toggle-latest)
+  ("Q" popper-cycle)
+  ("C-q" popper-toggle-type)
+  ("C-S-q" popper-kill-latest-popup)
+  :bind (("C-="   . popper-toggle-latest)
+         ("M-="   . popper-cycle)
+         ("C-M-=" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "Warnings"
+          "\\*Async Shell Command\\*"
+          "\\*Shell Command\\*"
+          help-mode
+          helpful-mode
+          compilation-mode
+          Man-mode
+          haskell-interactive-mode
+          inferior-python-mode)
+        popper-group-function #'popper-group-by-projectile)
+  (popper-mode +1))
+
+(use-package! lsp
+  :init
+  (setq lsp-keymap-prefix "M-l"))

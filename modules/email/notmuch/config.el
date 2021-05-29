@@ -16,24 +16,26 @@
         mm-text-html-renderer 'shr
         notmuch-multipart/alternative-discouraged '()
         notmuch-always-prompt-for-sender t)
-  (map! :map notmuch-search-mode-map
-        "u" #'notmuch-search-toggle-unread
-        "f" #'notmuch-search-toggle-flagged
-        "j" #'notmuch-search-next-thread
-        "k" #'notmuch-search-previous-thread
-        "e" #'notmuch-search-next-thread
-        "i" #'notmuch-search-previous-thread
-        ";" #'notmuch-jump-search
-        "K" #'notmuch-tag-jump
-        :map notmuch-tree-mode-map
-        "u" #'notmuch-tree-toggle-unread
-        "f" #'notmuch-tree-toggle-flagged
-        "j" #'notmuch-tree-next-matching-message
-        "k" #'notmuch-tree-prev-matching-message
-        "e" #'notmuch-tree-next-matching-message
-        "i" #'notmuch-tree-prev-matching-message
-        ";" #'notmuch-jump-search
-        "K" #'notmuch-tag-jump))
+  (map!
+   "C-c m" #'notmuch
+   :map notmuch-search-mode-map
+   "u" #'notmuch-search-toggle-unread
+   "f" #'notmuch-search-toggle-flagged
+   "j" #'notmuch-search-next-thread
+   "k" #'notmuch-search-previous-thread
+   "e" #'notmuch-search-next-thread
+   "i" #'notmuch-search-previous-thread
+   ";" #'notmuch-jump-search
+   "K" #'notmuch-tag-jump
+   :map notmuch-tree-mode-map
+   "u" #'notmuch-tree-toggle-unread
+   "f" #'notmuch-tree-toggle-flagged
+   "j" #'notmuch-tree-next-matching-message
+   "k" #'notmuch-tree-prev-matching-message
+   "e" #'notmuch-tree-next-matching-message
+   "i" #'notmuch-tree-prev-matching-message
+   ";" #'notmuch-jump-search
+   "K" #'notmuch-tag-jump))
 
 
 (use-package! org-mime

@@ -66,3 +66,7 @@
 (package! dired-subtree)
 (package! dired-narrow)
 (package! peep-dired)
+(package! bm)
+(package! disk-usage)
+(package! git-link)
+(package! popper)
