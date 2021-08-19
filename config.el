@@ -25,7 +25,8 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-solarized-dark-high-contrast)
+(setq doom-theme 'doom-solarized-dark-high-contrast
+      doom-variable-pitch-font "Linux Libertine O")
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
@@ -36,6 +37,7 @@
 (setq display-line-numbers-type t)
 
 (setq-default cursor-type '(bar . 2))
+(delete-selection-mode 0)
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
 ;; - `load!' for loading external *.el files relative to this one
@@ -77,16 +79,15 @@
    (";" (("q" delete-window)
          ("v" split-window-horizontally)
          ("s" split-window-vertically)
-         ("f" make-frame)))
+         ("f" make-frame)
+         ("i" doom/goto-private-config-file)))
    ("C-h" windmove-left)
    ("C-j" windmove-down)
    ("C-k" windmove-up)
    ("C-l" windmove-right)
    ("g r" revert-buffer)
    ("C-u" scroll-down-command :first '(deactivate-mark))
-   ("C-d" scroll-up-command :first '(deactivate-mark))
-   ("!" shell-command)
-   ("&" async-shell-command))
+   ("C-d" scroll-up-command :first '(deactivate-mark)))
   :config
   (add-hook! (prog-mode org-mode markdown-mode) #'ryo-modal-mode))
 
@@ -102,7 +103,6 @@
   (add-hook!
     (racket-mode emacs-lisp-mode clojure-mode scheme-mode lisp-mode lisp-interaction-mode)
     #'aggressive-indent-mode))
-(electric-pair-mode 1)
 
 (use-package! undo-fu
   :ryo
@@ -117,7 +117,12 @@
          ("<tab>" . helm-execute-persistent-action)
          ("C-z" . helm-select-action))
   :ryo
-  ("P" helm-show-kill-ring))
+  ("P" helm-show-kill-ring)
+  :config
+  (helm-autoresize-mode 1)
+  (setq helm-ff-DEL-up-one-level-maybe t
+        helm-window-prefer-horizontal-split t
+        helm-split-window-inside-p t))
 
 (use-package! helm-bibtex
   :custom ((helm-bibtex-full-frame nil)
@@ -136,14 +141,8 @@
          ("C-k" . company-select-previous)
          ("<down>" . company-select-next)
          ("<up>" . company-select-previous)
-         ("TAB" . nil)
          ("<tab>" . nil)))
 
-(define-key! :keymaps +default-minibuffer-maps
-  "C-j"    #'next-line
-  "C-k"    #'previous-line
-  "C-S-j"  #'scroll-up-command
-  "C-S-k"  #'scroll-down-command)
 (define-key! read-expression-map
   "C-j" #'next-line-or-history-element
   "C-k" #'previous-line-or-history-element)
@@ -154,7 +153,7 @@
  (:map special-mode-map "j" #'next-line "k" #'previous-line)
  (:map ryo-modal-mode-map
   (:when (featurep! :ui hydra)
-   "C-w" #'+hydra/window-nav/body)
+   "C-w" #'+hydra/windower/body)
   "SPC" doom-leader-map
   :desc "Undo window config"           "[ w" #'winner-undo
   :desc "Redo window config"           "] w" #'winner-redo
@@ -286,6 +285,9 @@
                     (haskell-indentation-mode 0)
                     (haskell-decl-scan-mode 1))))
 
+(use-package! clj-refactor
+  :bind (:map clj-refactor-map ("/" . nil)))
+
 (map! :map +doom-dashboard-mode-map
       "j" #'+doom-dashboard/forward-button
       "k" #'+doom-dashboard/backward-button)
@@ -370,6 +372,7 @@
           "Warnings"
           "\\*Async Shell Command\\*"
           "\\*Shell Command\\*"
+          "\\*shelldon"
           help-mode
           helpful-mode
           compilation-mode
@@ -381,4 +384,26 @@
 
 (use-package! lsp
   :init
-  (setq lsp-keymap-prefix "M-l"))
+  (setq lsp-keymap-prefix "M-l")
+  :config
+  (setq lsp-ui-sideline-enable nil))
+
+(setq enable-local-variables t)
+(setq! +zen-text-scale 1.1
+       writeroom-width 0.6)
+(map! (:leader
+       "a p" #'+zen/toggle
+       "a l" #'jm/toggle-theme))
+
+(setq! compilation-scroll-output t
+       comint-buffer-maximum-size 1024
+       shell-command-prompt-show-cwd t)
+
+(use-package! shelldon
+  :config
+  (map! :map ryo-modal-mode-map
+        "&" #'shelldon-output-history
+        "e" #'shelldon
+        "E" #'shelldon-loop)
+  (add-hook! 'shelldon-mode-hook
+             #'(lambda () (view-mode-disable) (ryo-modal-mode))))

@@ -72,3 +72,7 @@
 (package! popper)
 ;; TODO: this could be a problem. See https://discourse.doomemacs.org/t/development-roadmap/42#do-not-pr
 (package! format-all :pin "3a15ba2")
+(when (featurep! :completion helm)
+  (package! helm-system-packages))
+(package! shelldon :recipe (:host github :repo "Overdr0ne/shelldon"))
+(package! windower)
