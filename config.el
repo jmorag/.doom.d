@@ -110,14 +110,13 @@
   ("U" undo-fu-only-redo))
 
 (use-package! helm
+  :when (featurep! :completion helm)
   :bind (:map helm-map
          ("C-j" . helm-next-line)
          ("C-k" . helm-previous-line)
          ("TAB" . helm-execute-persistent-action)
          ("<tab>" . helm-execute-persistent-action)
          ("C-z" . helm-select-action))
-  :ryo
-  ("P" helm-show-kill-ring)
   :config
   (helm-autoresize-mode 1)
   (setq helm-ff-DEL-up-one-level-maybe t
@@ -125,15 +124,23 @@
         helm-split-window-inside-p t))
 
 (use-package! helm-bibtex
+  :when (featurep! :completion helm)
   :custom ((helm-bibtex-full-frame nil)
            (bibtex-completion-bibliography '("~/NYU/references/papers.bib"))
            (bibtex-completion-library-path '("~/NYU/references/"))))
 
 (use-package! ivy
+  :when (featurep! :completion ivy)
   :custom (ivy-wrap nil)
   :bind (:map ivy-minibuffer-map
          ("C-j" . ivy-next-line)
          ("C-k" . ivy-previous-line)))
+
+(use-package! vertico
+  :when (featurep! :completion vertico)
+  :bind (:map vertico-map
+         ("C-j" . vertico-next)
+         ("C-k" . vertico-previous)))
 
 (use-package! company
   :bind (:map company-active-map
@@ -158,6 +165,7 @@
   :desc "Undo window config"           "[ w" #'winner-undo
   :desc "Redo window config"           "] w" #'winner-redo
   :desc "Search buffer"                 "/"   #'+default/search-buffer
+  "P" #'yank-pop
   (:when (featurep! :ui vc-gutter)
    :desc "Jump to next hunk"          "] g"   #'git-gutter:next-hunk
    :desc "Jump to previous hunk"      "[ g"   #'git-gutter:previous-hunk
@@ -392,8 +400,8 @@
 (setq! +zen-text-scale 1.1
        writeroom-width 0.6)
 (map! (:leader
-       "a p" #'+zen/toggle
-       "a l" #'jm/toggle-theme))
+       "o p" #'+zen/toggle
+       "o l" #'jm/toggle-theme))
 
 (setq! compilation-scroll-output t
        comint-buffer-maximum-size 1024

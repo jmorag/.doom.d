@@ -53,14 +53,17 @@
   :after (org notmuch)
   :config (setq org-mime-library 'mml))
 
-
 (use-package! counsel-notmuch
   :when (featurep! :completion ivy)
   :commands counsel-notmuch
   :after notmuch)
 
-
 (use-package! helm-notmuch
   :when (featurep! :completion helm)
   :commands helm-notmuch
+  :after notmuch)
+
+(use-package! consult-notmuch
+  :when (featurep! :completion vertico)
+  :commands consult-notmuch
   :after notmuch)
