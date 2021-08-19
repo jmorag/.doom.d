@@ -179,14 +179,19 @@
   (:when (featurep! :tools magit)
    :desc "Magit status"  "g"   #'magit-status
    (:when (featurep! :ui hydra)
-    :desc "SMerge"  "s"   #'+vc/smerge-hydra/body))
+    :desc "SMerge"  "s"   #'+hydra/smerge/body))
   (:when (featurep! :completion helm)
    "b" #'helm-mini)
   (:when (featurep! :editor format)
-   :desc "Format buffer/region"   "="   #'+format/region-or-buffer)))
+   :desc "Format buffer"   "="   #'format-all-buffer)
+  (:when (featurep! :tools taskrunner)
+   :desc "Run tasks"       "t"   #'+taskrunner/project-tasks)))
+(setq +format-with-lsp nil)
 
 (after! projectile
   (define-key ryo-modal-mode-map (kbd "SPC p") 'projectile-command-map)
+  ;; Don't override projectile-compile-project with ivy version
+  (define-key! [remap projectile-compile-project] #'projectile-compile-project)
   (map! (:leader
          :desc "Search project"        "/" #'+default/search-project
          :desc "Find file in project"  "SPC"  #'projectile-find-file
