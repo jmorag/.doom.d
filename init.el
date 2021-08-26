@@ -164,6 +164,7 @@
        ;;scala             ; java, but good
        ;;scheme            ; a fully conniving family of lisps
        (sh +fish)                ; she sells {ba,z,fi}sh shells on the C xor
+       shakespeare               ; who wants closing tags?
        ;;sml
        ;;solidity          ; do you need a blockchain? No.
        ;;swift             ; who asked for emoji variables?
