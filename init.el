@@ -21,10 +21,10 @@
 
        :completion
        (company +tng)       ; the ultimate code completion backend
-       ;; (helm +fuzzy +icons) ; the *other* search engine for love and life
+       (helm +fuzzy +icons) ; the *other* search engine for love and life
        ;;ido               ; the other *other* search engine...
        ;; (ivy +fuzzy +prescient +icons +orderless) ; a search engine for love and life
-       (vertico +icons)         ; the search engine of the future
+       ;; (vertico +icons)         ; the search engine of the future
 
        :ui
        ;;deft              ; notational velocity for Emacs
@@ -149,11 +149,11 @@
        ;;nim               ; python + lisp at the speed of c
        ;;nix               ; I hereby declare "nix geht mehr!"
        ;; ocaml             ; an objective camel
-       org               ; organize your plain life in plain text
+       (org +dragndrop +hugo +present +pretty) ; organize your plain life in plain text
        ;;php               ; perl's insecure younger brother
        ;;plantuml          ; diagrams for confusing people more
        ;;purescript        ; javascript, but functional
-       (python +lsp)            ; beautiful is better than ugly
+       (python +lsp +pyright)            ; beautiful is better than ugly
        ;;qt                ; the 'cutest' gui framework ever
        ;;racket            ; a DSL for DSLs
        ;;raku              ; the artist formerly known as perl6
