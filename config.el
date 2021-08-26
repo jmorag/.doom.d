@@ -38,6 +38,8 @@
 
 (setq-default cursor-type '(bar . 2))
 (delete-selection-mode 0)
+(show-paren-mode 0)
+
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
 ;; - `load!' for loading external *.el files relative to this one
@@ -130,7 +132,7 @@
            (bibtex-completion-library-path '("~/NYU/references/"))))
 
 (use-package! ivy
-  :when (featurep! :completion ivy)
+  :when (or (featurep! :completion helm) (featurep! :completion ivy))
   :custom (ivy-wrap nil)
   :bind (:map ivy-minibuffer-map
          ("C-j" . ivy-next-line)
@@ -415,3 +417,54 @@
         "E" #'shelldon-loop)
   (add-hook! 'shelldon-mode-hook
              #'(lambda () (view-mode-disable) (ryo-modal-mode))))
+
+(use-package! proced
+  :bind (:map proced-mode-map
+         ("j" . next-line)
+         ("k" . previous-line)
+         ("K" . (lambda () (interactive)
+                  (proced-send-signal "KILL" (proced-marked-processes))
+                  (revert-buffer)))))
+
+(use-package! notmuch
+  :custom (notmuch-search-oldest-first nil)
+  :config
+  (setq! send-mail-function 'sendmail-sent-it
+         sendmail-program "msmtp"
+         message-send-mail-function 'message-send-mail-with-sendmail
+         notmuch-poll-script "/home/joseph/Mail/checkmail.sh"
+         notmuch-show-logo nil
+         mm-text-html-renderer 'shr
+         notmuch-multipart/alternative-discouraged '()
+         notmuch-always-prompt-for-sender t
+         notmuch-saved-searches
+         '((:name "inbox" :query "tag:inbox date:30d..now" :key "i")
+           (:name "unread" :query "tag:unread" :key "u")
+           (:name "flagged" :query "tag:flagged" :key "f")
+           (:name "sent" :query "tag:sent" :key "t")
+           (:name "drafts" :query "tag:draft" :key "d")
+           (:name "all mail" :query "date:30d..now" :key "a")
+           (:name "digest" :query "tag:digest")
+           (:name "lists" :query "tag:lists")
+           (:name "recurse" :query "to:@lists.community.recurse.com")))
+  (map!
+   "C-c m" #'notmuch
+   ;; (:when (featurep! :completion helm) "C-c m" #'helm-notmuch)
+   :map notmuch-search-mode-map
+   "u" #'notmuch-search-toggle-unread
+   "f" #'notmuch-search-toggle-flagged
+   "j" #'notmuch-search-next-thread
+   "k" #'notmuch-search-previous-thread
+   "e" #'notmuch-search-next-thread
+   "i" #'notmuch-search-previous-thread
+   ";" #'notmuch-jump-search
+   "K" #'notmuch-tag-jump
+   :map notmuch-tree-mode-map
+   "u" #'notmuch-tree-toggle-unread
+   "f" #'notmuch-tree-toggle-flagged
+   "j" #'notmuch-tree-next-matching-message
+   "k" #'notmuch-tree-prev-matching-message
+   "e" #'notmuch-tree-next-matching-message
+   "i" #'notmuch-tree-prev-matching-message
+   ";" #'notmuch-jump-search
+   "K" #'notmuch-tag-jump))

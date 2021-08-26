@@ -1,4 +1,5 @@
-;;; email/notmuch/autoload.el -*- lexical-binding: t; -*-
+;;; autoload/notmuch.el -*- lexical-binding: t; -*-
+;;;###if (featurep! :email notmuch)
 
 ;; The following stolen from evil-collection
 
