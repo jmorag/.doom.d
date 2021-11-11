@@ -7,5 +7,4 @@
   (setq doom-theme
         (if (eq doom-theme 'doom-solarized-dark-high-contrast)
             'doom-solarized-light 'doom-solarized-dark-high-contrast))
-  (doom/reload-theme))
-
+  (load-theme doom-theme))
