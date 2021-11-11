@@ -38,7 +38,7 @@
 
 (setq-default cursor-type '(bar . 2))
 (delete-selection-mode 0)
-(show-paren-mode 0)
+(setq standard-indent 2)
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
@@ -111,6 +111,8 @@
   ("u" undo-fu-only-undo)
   ("U" undo-fu-only-redo))
 
+(use-package! wgrep)
+
 (use-package! helm
   :when (featurep! :completion helm)
   :bind (:map helm-map
@@ -124,6 +126,9 @@
   (setq helm-ff-DEL-up-one-level-maybe t
         helm-window-prefer-horizontal-split t
         helm-split-window-inside-p t))
+
+(use-package! helm-ag
+  :when (featurep! :completion helm))
 
 (use-package! helm-bibtex
   :when (featurep! :completion helm)
@@ -203,6 +208,8 @@
   (define-key! [remap projectile-compile-project] #'projectile-compile-project)
   (map! (:leader
          :desc "Search project"        "/" #'+default/search-project
+         (:when (featurep! :completion helm)
+          :desc "search project"       "/" #'helm-do-ag-project-root)
          :desc "Find file in project"  "SPC"  #'projectile-find-file
          :desc "Jump to bookmark"      "RET"  #'bookmark-jump)))
 
@@ -272,6 +279,7 @@
          ("k" . peep-dired-prev-file)))
 
 (use-package! magit
+  :custom (git-commit-summary-max-length 68)
   :bind
   (:map magit-status-mode-map
    ("j" . magit-section-forward)
@@ -362,7 +370,8 @@
    ("k" . git-timemachine-show-previous-revision)
    ("," . write-file)))
 
-(use-package! git-link)
+(use-package! git-link
+  :custom (git-link-use-commit t))
 
 (use-package! popper
   ;; Use emacs native window display options
@@ -387,6 +396,7 @@
           helpful-mode
           compilation-mode
           Man-mode
+          Comint
           haskell-interactive-mode
           inferior-python-mode)
         popper-group-function #'popper-group-by-projectile)
@@ -468,3 +478,13 @@
    "i" #'notmuch-tree-prev-matching-message
    ";" #'notmuch-jump-search
    "K" #'notmuch-tag-jump))
+
+(use-package! highlight-indent-guides
+  :config
+  (remove-hook! '(prog-mode-hook text-mode-hook conf-mode-hook)
+    #'highlight-indent-guides-mode)
+  (add-hook! 'shakespeare-hamlet-mode-hook #'highlight-indent-guides-mode))
+
+;; (use-package! org-re-reveal
+;;   :config
+;;   (setq org-re-reveal-root "/home/joseph/Projects/reveal.js"))

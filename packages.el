@@ -75,6 +75,8 @@
 (when (featurep! :completion helm)
   (package! helm-system-packages)
   ;; wgrep doesn't come with helm for some reason
-  (package! wgrep :pin "f9687c28bbc2e84f87a479b6ce04407bb97cfb23"))
+  (package! wgrep :pin "f9687c28bbc2e84f87a479b6ce04407bb97cfb23")
+  (package! helm-ag))
 (package! shelldon :recipe (:host github :repo "Overdr0ne/shelldon"))
 (package! windower)
+(package! paren :disable t)
