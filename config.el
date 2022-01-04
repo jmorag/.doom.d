@@ -25,8 +25,12 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-solarized-dark-high-contrast
-      doom-variable-pitch-font "Linux Libertine O")
+(setq doom-theme 'doom-solarized-dark-high-contrast)
+(unless IS-MAC (setq doom-variable-pitch-font "Linux Libertine O"))
+(when IS-MAC
+  (setq doom-font (font-spec :family "Menlo" :size 15)
+        mac-command-modifier 'meta))
+
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
@@ -203,6 +207,7 @@
 (setq +format-with-lsp nil)
 
 (after! projectile
+  (setq projectile-per-project-compilation-buffer t)
   (define-key ryo-modal-mode-map (kbd "SPC p") 'projectile-command-map)
   ;; Don't override projectile-compile-project with ivy version
   (define-key! [remap projectile-compile-project] #'projectile-compile-project)
@@ -246,6 +251,7 @@
   (set-lsp-priority! 'clangd 2))
 
 (use-package! dired-hacks-utils
+  :custom (wdired-allow-to-change-permissions t)
   :config
   (map! :map dired-mode-map
         ";" #'wdired-change-to-wdired-mode
@@ -339,7 +345,7 @@
   (add-hook 'after-save-hook #'bm-buffer-save)
 
   ;; Restoring bookmarks
-  (add-hook 'find-file-hooks   #'bm-buffer-restore)
+  (add-hook 'find-file-hook    #'bm-buffer-restore)
   (add-hook 'after-revert-hook #'bm-buffer-restore)
 
   ;; The `after-revert-hook' is not necessary to use to achieve persistence,
@@ -442,7 +448,7 @@
   (setq! send-mail-function 'sendmail-sent-it
          sendmail-program "msmtp"
          message-send-mail-function 'message-send-mail-with-sendmail
-         notmuch-poll-script "/home/joseph/Mail/checkmail.sh"
+         notmuch-poll-script (if IS-MAC "/Users/josephmorag/Mail/checkmail.sh" "/home/joseph/Mail/checkmail.sh")
          notmuch-show-logo nil
          mm-text-html-renderer 'shr
          notmuch-multipart/alternative-discouraged '()

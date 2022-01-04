@@ -80,3 +80,4 @@
 (package! shelldon :recipe (:host github :repo "Overdr0ne/shelldon"))
 (package! windower)
 (package! paren :disable t)
+(package! bash-completion)
