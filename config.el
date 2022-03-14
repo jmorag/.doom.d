@@ -303,6 +303,8 @@
   (transient-append-suffix 'magit-merge 'magit-merge:--strategy-option
     '("-a" "Allow unrelated histories" "--allow-unrelated-histories")))
 
+(use-package! gh-notify)
+
 (use-package! haskell-mode
   :hook
   (haskell-mode . (lambda ()

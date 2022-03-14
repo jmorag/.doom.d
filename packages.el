@@ -81,3 +81,4 @@
 (package! windower)
 (package! paren :disable t)
 (package! bash-completion)
+(package! gh-notify)
