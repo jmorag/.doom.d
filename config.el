@@ -44,6 +44,11 @@
 (delete-selection-mode 0)
 (setq standard-indent 2)
 
+;; Fix C-i so it doesn't get interpreted as TAB
+(define-key input-decode-map [?\C-i] [C-i])
+(define-key input-decode-map [?\C-m] [C-m])
+;; (define-key input-decode-map [(control ?i)] [control-i])
+
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
 ;; - `load!' for loading external *.el files relative to this one
@@ -62,14 +67,32 @@
 ;; they are implemented.
 ;; (after! evil
 ;;   (setq evil-escape-key-sequence "fd"))
+
+(defcustom jm/keyboard-layout 'colemak-dh
+  "Keyboard layout"
+  :type 'symbol
+  :options '(qwerty colemak-dh))
+
+(defun is-qwerty () (eq jm/keyboard-layout 'qwerty))
+(defun is-colemak () (eq jm/keyboard-layout 'colemak-dh))
+
 (use-package! which-key
   :defer t
   :custom (which-key-idle-delay 0.2)
   :config
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 
+(defun jm/toggle-layout ()
+  "Switch between qwerty and colemak"
+  (interactive)
+  (setq jm/keyboard-layout (if (is-qwerty) 'colemak-dh 'qwerty))
+  (doom/reload))
+
 (use-package! kakoune
-  :init (kakoune-setup-keybinds))
+  :init (if (is-qwerty)
+            (kakoune-setup-keybinds)
+          (kakoune-setup-keybinds-colemak-dh)))
+
 (use-package! ryo-modal
   :init
   (ryo-modal-keys
@@ -77,8 +100,6 @@
    ("," save-buffer)
    ("m" mc/mark-next-like-this)
    ("M" mc/skip-to-next-like-this)
-   ("n" mc/mark-previous-like-this)
-   ("N" mc/skip-to-previous-like-this)
    ("M-m" mc/edit-lines)
    ("*" mc/mark-all-like-this)
    ("v" er/expand-region)
@@ -89,22 +110,36 @@
          ("s" split-window-vertically)
          ("f" make-frame)
          ("i" doom/goto-private-config-file)))
-   ("C-h" windmove-left)
-   ("C-j" windmove-down)
-   ("C-k" windmove-up)
-   ("C-l" windmove-right)
    ("g r" revert-buffer)
    ("C-u" scroll-down-command :first '(deactivate-mark))
    ("C-d" scroll-up-command :first '(deactivate-mark)))
+  (if (is-qwerty)
+      (ryo-modal-keys
+       (:mc-all 0)
+       ("n" mc/mark-previous-like-this)
+       ("N" mc/skip-to-previous-like-this)
+       ("C-h" windmove-left)
+       ("C-j" windmove-down)
+       ("C-k" windmove-up)
+       ("C-l" windmove-right))
+    (ryo-modal-keys
+     (:mc-all 0)
+     ("j" mc/mark-previous-like-this)
+     ("J" mc/skip-to-previous-like-this)
+     ("C-n" windmove-left)
+     ("C-e" windmove-down)
+     ("<C-i>" windmove-up)
+     ("C-o" windmove-right)))
+  (defun ryo-enter () (interactive) (ryo-modal-mode 1))
+  (global-set-key (kbd "<escape>") #'ryo-enter)
   :config
   (add-hook! (prog-mode org-mode markdown-mode) #'ryo-modal-mode))
 
-(use-package! key-seq
-  :init
-  (key-chord-mode 1)
-  (defun ryo-enter () (interactive) (ryo-modal-mode 1))
-  (key-seq-define-global "fd" #'ryo-enter)
-  (global-set-key (kbd "<escape>") #'ryo-enter))
+(when (is-qwerty)
+ (use-package! key-seq
+   :init
+   (key-chord-mode 1)
+   (key-seq-define-global "fd" #'ryo-enter)))
 
 (use-package! aggressive-indent
   :defer t
@@ -124,13 +159,14 @@
 
 (use-package! helm
   :when (modulep! :completion helm)
-  :bind (:map helm-map
-         ("C-j" . helm-next-line)
-         ("C-k" . helm-previous-line)
-         ("TAB" . helm-execute-persistent-action)
-         ("<tab>" . helm-execute-persistent-action)
-         ("C-z" . helm-select-action))
   :config
+  (map! :map helm-map
+        (:when (is-qwerty)
+          "C-j" #'helm-next-line
+          "C-k" #'helm-previous-line)
+        "TAB" #'helm-execute-persistent-action
+        "<tab>" #'helm-execute-persistent-action
+        "C-z" #'helm-select-action)
   (helm-autoresize-mode 1)
   (setq helm-ff-DEL-up-one-level-maybe t
         helm-window-prefer-horizontal-split t
@@ -151,32 +187,46 @@
   :defer t
   :when (or (modulep! :completion helm) (modulep! :completion ivy))
   :custom (ivy-wrap nil)
-  :bind (:map ivy-minibuffer-map
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)))
+  :config
+  (map!
+   (:map ivy-minibuffer-map
+         (:when (is-qwerty)
+           "C-j" #'ivy-next-line
+           "C-k" #'ivy-previous-line))))
 
 (use-package! vertico
   :defer t
   :when (modulep! :completion vertico)
-  :bind (:map vertico-map
-         ("C-j" . vertico-next)
-         ("C-k" . vertico-previous)))
+  :config
+  (:map vertico-map
+         (:when (is-qwerty)
+           "C-j" #'vertico-next
+           "C-k" #'vertico-previous)))
 
 (use-package! company
-  :defer t
-  :bind (:map company-active-map
-              ("C-j" . company-select-next)
-              ("C-k" . company-select-previous)
-              ("<down>" . company-select-next)
-              ("<up>" . company-select-previous)
-              ("<tab>" . nil)
-              ("<backtab>" . nil)
-              ("TAB" . nil)
-              ("S-TAB" . nil)))
+  :config
+  (map!
+   (:map company-active-map
+         (:when (is-qwerty)
+           "C-j" #'company-select-next
+           "C-k" #'company-select-previous
+           "<tab>" #'nil
+           "<backtab>" #'nil
+           "TAB" #'nil
+           "S-TAB" #'nil)
+         (:when (is-colemak)
+           "<tab>" #'nil
+           "<backtab>" #'nil
+           "TAB" #'nil
+           "S-TAB" #'nil))))
 
-(define-key! read-expression-map
-  "C-j" #'next-line-or-history-element
-  "C-k" #'previous-line-or-history-element)
+(if (is-qwerty)
+    (define-key! read-expression-map
+      "C-j" #'next-line-or-history-element
+      "C-k" #'previous-line-or-history-element)
+  (define-key! read-expression-map
+      "C-e" #'next-line-or-history-element
+      "<C-i>" #'previous-line-or-history-element))
 
 (after! hydra
   (defhydra +hydra/windower (:hint nil)
@@ -209,22 +259,66 @@ _l_: move border right      _L_: swap border right
     ("s" windower-swap :exit t)
     ("q" nil "cancel" :color blue)
     ("<return>" nil nil))
+  (defhydra +hydra/windower-colemak (:hint nil)
+    "
+^Move^                      ^Swap^
+^^^^^^^^------------------------------------------------
+_n_: move border left       _N_: swap border left
+_e_: move border up         _E_: swap border above
+_i_: move border down       _I_: swap border below
+_o_: move border right      _O_: swap border right
+                          _t_: toggle vertical or horizontal split
+"
+    ("n" windower-move-border-left)
+    ("e" windower-move-border-below)
+    ("i" windower-move-border-above)
+    ("o" windower-move-border-right)
+    ("<left>" windower-move-border-left)
+    ("<down>" windower-move-border-below)
+    ("<up>" windower-move-border-above)
+    ("<right>" windower-move-border-right)
+    ("N" windower-swap-left)
+    ("E" windower-swap-below)
+    ("I" windower-swap-above)
+    ("O" windower-swap-right)
+    ("<S-left>" windower-swap-left)
+    ("<S-down>" windower-swap-below)
+    ("<S-up>" windower-swap-above)
+    ("<S-right>" windower-swap-right)
+    ("t" windower-toggle-split)
+    ("s" windower-swap :exit t)
+    ("q" nil "cancel" :color blue)
+    ("<return>" nil nil))
   (defhydra +hydra/smerge ()
-  "A hydra for smerge"
-  ("j" smerge-next "next conflict")
-  ("k" smerge-prev "previous conflict")
-  ("u" smerge-keep-upper "keep upper conflict")
-  ("l" smerge-keep-lower "keep lower conflict")
-  ("b" smerge-keep-all "keep both")
-  ("q" nil "cancel" :color blue)))
+    "A hydra for smerge"
+    ("j" smerge-next "next conflict")
+    ("k" smerge-prev "previous conflict")
+    ("u" smerge-keep-upper "keep upper conflict")
+    ("l" smerge-keep-lower "keep lower conflict")
+    ("b" smerge-keep-all "keep both")
+    ("q" nil "cancel" :color blue))
+  (defhydra +hydra/smerge-colemak ()
+    "A hydra for smerge (colemak version)"
+    ("e" smerge-next "next conflict")
+    ("i" smerge-prev "previous conflict")
+    ("u" smerge-keep-upper "keep upper conflict")
+    ("l" smerge-keep-lower "keep lower conflict")
+    ("b" smerge-keep-all "keep both")
+    ("q" nil "cancel" :color blue)))
 
 (map!
  "C-z" nil
  "C-;" nil
- (:map special-mode-map "j" #'next-line "k" #'previous-line)
- (:map ryo-modal-mode-map
-  (:when (modulep! :ui hydra)
+ (:map special-mode-map :when (is-qwerty)
+       "j" #'next-line
+       "k" #'previous-line)
+ (:map special-mode-map :when (is-colemak)
+       "e" #'next-line
+       "i" #'previous-line)(:map ryo-modal-mode-map
+  (:when (and (modulep! :ui hydra) (is-qwerty))
     "C-w" #'+hydra/windower/body)
+  (:when (and (modulep! :ui hydra) (is-colemak))
+    "C-w" #'+hydra/windower-colemak/body)
   "SPC" doom-leader-map
   :desc "Undo window config"           "[ w" #'winner-undo
   :desc "Redo window config"           "] w" #'winner-redo
@@ -249,8 +343,10 @@ _l_: move border right      _L_: swap border right
   :desc "Help" "h" help-map
   (:when (modulep! :tools magit)
     :desc "Magit status"  "g"   #'magit-status
-    (:when (modulep! :ui hydra)
-      :desc "SMerge"  "s"   #'+hydra/smerge/body))
+    (:when (and (modulep! :ui hydra) (is-qwerty))
+      :desc "SMerge"  "s"   #'+hydra/smerge/body)
+    (:when (and (modulep! :ui hydra) (is-colemak))
+      :desc "SMerge"  "s"   #'+hydra/smerge-colemak/body))
   (:when (modulep! :completion helm)
     "b" #'helm-mini)
   (:when (modulep! :editor format)
@@ -314,57 +410,87 @@ _l_: move border right      _L_: swap border right
   :config
   (map! :map dired-mode-map
         ";" #'wdired-change-to-wdired-mode
-        "h" #'dired-up-directory
-        "j" #'dired-hacks-next-file
-        "k" #'dired-hacks-previous-file
-        "l" #'dired-find-alternate-file
+        (:when (is-qwerty)
+          "h" #'dired-up-directory
+          "j" #'dired-hacks-next-file
+          "k" #'dired-hacks-previous-file
+          "l" #'dired-find-alternate-file)
+        (:when (is-colemak)
+          "n" #'dired-up-directory
+          "e" #'dired-hacks-next-file
+          "i" #'dired-hacks-previous-file
+          "o" #'dired-find-alternate-file)
         "K" #'dired-do-kill-lines
         :leader
         :desc "Dired" "d" #'dired-jump))
 
 (use-package! dired-narrow
-  :defer t
   :bind (:map dired-mode-map
          ("f" . dired-narrow)
          ("/" . dired-narrow)))
 
 (use-package! dired-subtree
-  :defer t
-  :bind (:map dired-mode-map
-         ("i" . dired-subtree-toggle)
-         ("C-j" . dired-subtree-next-sibling)
-         ("C-k" . dired-subtree-previous-sibling)))
+  :commands dired-subtree-toggle
+  :config
+  (map! :map dired-mode-map
+        (:when (is-qwerty)
+          "i" #'dired-subtree-toggle
+          "C-j" #'dired-subtree-next-sibling
+          "C-k" #'dired-subtree-previous-sibling)
+        (:when (is-colemak)
+           "l" #'dired-subtree-toggle
+           "C-e" #'dired-subtree-next-sibling
+           "<C-i>" #'dired-subtree-previous-sibling)))
 
 (use-package! peep-dired
-  :defer t
+  :commands peep-dired
   :custom
   (peed-dired-cleanup-on-disable t)
   (peep-dired-enable-on-directories t)
-  :bind (:map dired-mode-map
-         ("p" . peep-dired)
-         :map peep-dired-mode-map
-         ("j" . peep-dired-next-file)
-         ("k" . peep-dired-prev-file)))
+  :config
+  (map!
+   (:map dired-mode-map "p" #'peep-dired)
+   (:map peep-dired-mode-map
+         (:when (is-qwerty)
+           "j" #'peep-dired-next-file
+           "k" #'peep-dired-prev-file)
+         (:when (is-colemak)
+           "e" #'peep-dired-next-file
+           "i" #'peep-dired-prev-file))))
 
 (use-package! magit
-  :commands (magit-status)
+  :commands magit-status
   :custom (git-commit-summary-max-length 68)
-  :bind
-  (:map magit-status-mode-map
-   ("j" . magit-section-forward)
-   ("k" . magit-section-backward)
-   ("C-j" . magit-section-forward-sibling)
-   ("C-k" . magit-section-backward-sibling)
-   ("g" . magit-status-jump)
-   ("p" . magit-push)
-   ("P" . magit-pull)
-   ("M-k" . magit-discard)
-   :map magit-log-mode-map
-   ("j" . magit-section-forward)
-   ("k" . magit-section-backward))
   :config
   (transient-append-suffix 'magit-merge 'magit-merge:--strategy-option
-    '("-a" "Allow unrelated histories" "--allow-unrelated-histories")))
+    '("-a" "Allow unrelated histories" "--allow-unrelated-histories"))
+  (map!
+   (:when (is-qwerty)
+     (:map magit-status-mode-map
+           "j" #'magit-section-forward
+           "k" #'magit-section-backward
+           "C-j" #'magit-section-forward-sibling
+           "C-k" #'magit-section-backward-sibling
+           "g" #'magit-status-jump
+           "p" #'magit-push
+           "P" #'magit-pull
+           "M-k" #'magit-discard)
+     (:map magit-log-mode-map
+           "j" #'magit-section-forward
+           "k" #'magit-section-backward))
+   (:when (is-colemak)
+     (:map magit-status-mode-map
+           "e" #'magit-section-forward
+           "i" #'magit-section-backward
+           "C-e" #'magit-section-forward-sibling
+           "<C-i>" #'magit-section-backward-sibling
+           "g" #'magit-status-jump
+           "p" #'magit-push
+           "P" #'magit-pull
+           "k" #'magit-discard)
+     (:map magit-log-mode-map
+           "e" #'magit-section-forward
+           "i" #'magit-section-backward))))
 
 (use-package! gh-notify
   :defer t)
@@ -385,8 +511,12 @@ _l_: move border right      _L_: swap border right
   :bind (:map clj-refactor-map ("/" . nil)))
 
 (map! :map +doom-dashboard-mode-map
-      "j" #'+doom-dashboard/forward-button
-      "k" #'+doom-dashboard/backward-button)
+      (:when (is-qwerty)
+        "j" #'+doom-dashboard/forward-button
+        "k" #'+doom-dashboard/backward-button)
+      (:when (is-colemak)
+        "e" #'+doom-dashboard/forward-button
+        "i" #'+doom-dashboard/backward-button))
 
 ;; Bookmarks - https://github.com/joodland/bm
 (use-package! bm
@@ -496,28 +626,44 @@ _l_: move border right      _L_: swap border right
        writeroom-width 0.6)
 (map! (:leader
        "o p" #'+zen/toggle
-       "o l" #'jm/toggle-theme))
+       "o l" #'jm/toggle-theme
+       "o q" #'jm/toggle-layout))
 
 (setq! compilation-scroll-output t
        comint-buffer-maximum-size 1024
        shell-command-prompt-show-cwd t)
 
 (use-package! shelldon
-  :bind (:map ryo-modal-mode-map
-              ("&" . shelldon-output-history)
-              ("e" . shelldon)
-              ("E" . shelldon-loop))
   :config
+  (map!
+   (:map ryo-modal-mode-map
+         "&" #'shelldon-output-history
+         (:when (is-qwerty)
+           "e" #'shelldon
+           "E" #'shelldon-loop)
+         (:when (is-colemak)
+           "k" #'shelldon
+           "K" #'shelldon-loop)
+         ))
   (add-hook 'shelldon-mode-hook
-             #'(lambda () (view-mode-disable) (ryo-modal-mode))))
+            #'(lambda () (view-mode-disable) (ryo-modal-mode))))
 
 (use-package! proced
-  :bind (:map proced-mode-map
-         ("j" . next-line)
-         ("k" . previous-line)
-         ("K" . (lambda () (interactive)
-                  (proced-send-signal "KILL" (proced-marked-processes))
-                  (revert-buffer)))))
+  :config
+  (defun proced-kill ()
+    (interactive)
+    (proced-send-signal "KILL" (proced-marked-processes))
+    (revert-buffer))
+  (map!
+   (:map proced-mode-map
+         (:when (is-qwerty)
+           "j" #'next-line
+           "k" #'previous-line
+           "K" #'proced-kill)
+         (:when (is-colemak)
+           "e" #'next-line
+           "i" #'previous-line
+           "k" #'proced-kill))))
 
 (use-package! notmuch
   :commands (notmuch)
@@ -544,24 +690,36 @@ _l_: move border right      _L_: swap border right
   (map!
    "C-c m" #'notmuch
    ;; (:when (modulep! :completion helm) "C-c m" #'helm-notmuch)
-   :map notmuch-search-mode-map
-   "u" #'notmuch-search-toggle-unread
-   "f" #'notmuch-search-toggle-flagged
-   "j" #'notmuch-search-next-thread
-   "k" #'notmuch-search-previous-thread
-   "e" #'notmuch-search-next-thread
-   "i" #'notmuch-search-previous-thread
-   ";" #'notmuch-jump-search
-   "K" #'notmuch-tag-jump
-   :map notmuch-tree-mode-map
-   "u" #'notmuch-tree-toggle-unread
-   "f" #'notmuch-tree-toggle-flagged
-   "j" #'notmuch-tree-next-matching-message
-   "k" #'notmuch-tree-prev-matching-message
-   "e" #'notmuch-tree-next-matching-message
-   "i" #'notmuch-tree-prev-matching-message
-   ";" #'notmuch-jump-search
-   "K" #'notmuch-tag-jump))
+   (:when (is-qwerty)
+     :map notmuch-search-mode-map
+     "u" #'notmuch-search-toggle-unread
+     "f" #'notmuch-search-toggle-flagged
+     "j" #'notmuch-search-next-thread
+     "k" #'notmuch-search-previous-thread
+     ";" #'notmuch-jump-search
+     "K" #'notmuch-tag-jump
+     :map notmuch-tree-mode-map
+     "u" #'notmuch-tree-toggle-unread
+     "f" #'notmuch-tree-toggle-flagged
+     "j" #'notmuch-tree-next-matching-message
+     "k" #'notmuch-tree-prev-matching-message
+     ";" #'notmuch-jump-search
+     "K" #'notmuch-tag-jump)
+   (:when (is-colemak)
+     :map notmuch-search-mode-map
+     "u" #'notmuch-search-toggle-unread
+     "f" #'notmuch-search-toggle-flagged
+     "e" #'notmuch-search-next-thread
+     "i" #'notmuch-search-previous-thread
+     "j" #'notmuch-jump-search
+     "k" #'notmuch-tag-jump
+     :map notmuch-tree-mode-map
+     "u" #'notmuch-tree-toggle-unread
+     "f" #'notmuch-tree-toggle-flagged
+     "e" #'notmuch-tree-next-matching-message
+     "i" #'notmuch-tree-prev-matching-message
+     "j" #'notmuch-jump-search
+     "k" #'notmuch-tag-jump)))
 
 (use-package! highlight-indent-guides
   :defer t
