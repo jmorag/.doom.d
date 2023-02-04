@@ -7,7 +7,11 @@
    '("b5f5170101ae5f01c2310bbc8737ed7fa274332cb9ffbd978737336c27042d23" "4f1d2476c290eaa5d9ab9d13b60f2c0f1c8fa7703596fa91b235db7f99a9441b" default))
  '(lsp-rust-analyzer-proc-macro-enable t)
  '(safe-local-variable-values
-   '((dante-target . "test:Testall")
+   '((format-all-formatters
+      ("Haskell" fourmolu))
+     (lsp-rust-all-targets)
+     (lsp-rust-analyzer-cargo-all-targets)
+     (dante-target . "test:Testall")
      (haskell-process-type quote stack)
      (js-indent-level . 2)
      (haskell-process-type . stack-ghci)

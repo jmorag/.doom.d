@@ -71,7 +71,7 @@
 (package! git-link)
 (package! popper)
 ;; TODO: this could be a problem. See https://discourse.doomemacs.org/t/development-roadmap/42#do-not-pr
-(package! format-all :pin "3a15ba2")
+(package! format-all :pin "828280eaf3b46112e17746a7d03235570a633425")
 (when (featurep! :completion helm)
   (package! helm-system-packages)
   ;; wgrep doesn't come with helm for some reason
@@ -82,3 +82,7 @@
 (package! paren :disable t)
 (package! bash-completion)
 (package! gh-notify)
+(package! ox-moderncv :recipe (:host github :repo "jmorag/org-cv"))
+(package! suggest)
+(package! smartparens :recipe (:host github :repo "jmorag/smartparens") :pin "512a3a5284d3ac537b7786692c2533678f87b919")
+(unpin! lsp-haskell)

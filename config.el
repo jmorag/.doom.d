@@ -63,11 +63,13 @@
 ;; (after! evil
 ;;   (setq evil-escape-key-sequence "fd"))
 (use-package! which-key
+  :defer t
   :custom (which-key-idle-delay 0.2)
   :config
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 
-(use-package! kakoune :init (kakoune-setup-keybinds))
+(use-package! kakoune
+  :init (kakoune-setup-keybinds))
 (use-package! ryo-modal
   :init
   (ryo-modal-keys
@@ -105,20 +107,23 @@
   (global-set-key (kbd "<escape>") #'ryo-enter))
 
 (use-package! aggressive-indent
+  :defer t
   :config
   (add-hook!
     (racket-mode emacs-lisp-mode clojure-mode scheme-mode lisp-mode lisp-interaction-mode)
     #'aggressive-indent-mode))
 
 (use-package! undo-fu
+  :commands (undo-fu-only-undo undo-fu-only-redo)
   :ryo
   ("u" undo-fu-only-undo)
   ("U" undo-fu-only-redo))
 
-(use-package! wgrep)
+(use-package! wgrep
+  :defer t)
 
 (use-package! helm
-  :when (featurep! :completion helm)
+  :when (modulep! :completion helm)
   :bind (:map helm-map
          ("C-j" . helm-next-line)
          ("C-k" . helm-previous-line)
@@ -132,34 +137,42 @@
         helm-split-window-inside-p t))
 
 (use-package! helm-ag
-  :when (featurep! :completion helm))
+  :defer t
+  :when (modulep! :completion helm))
 
 (use-package! helm-bibtex
-  :when (featurep! :completion helm)
+  :defer t
+  :when (modulep! :completion helm)
   :custom ((helm-bibtex-full-frame nil)
            (bibtex-completion-bibliography '("~/NYU/references/papers.bib"))
            (bibtex-completion-library-path '("~/NYU/references/"))))
 
 (use-package! ivy
-  :when (or (featurep! :completion helm) (featurep! :completion ivy))
+  :defer t
+  :when (or (modulep! :completion helm) (modulep! :completion ivy))
   :custom (ivy-wrap nil)
   :bind (:map ivy-minibuffer-map
          ("C-j" . ivy-next-line)
          ("C-k" . ivy-previous-line)))
 
 (use-package! vertico
-  :when (featurep! :completion vertico)
+  :defer t
+  :when (modulep! :completion vertico)
   :bind (:map vertico-map
          ("C-j" . vertico-next)
          ("C-k" . vertico-previous)))
 
 (use-package! company
+  :defer t
   :bind (:map company-active-map
-         ("C-j" . company-select-next)
-         ("C-k" . company-select-previous)
-         ("<down>" . company-select-next)
-         ("<up>" . company-select-previous)
-         ("<tab>" . nil)))
+              ("C-j" . company-select-next)
+              ("C-k" . company-select-previous)
+              ("<down>" . company-select-next)
+              ("<up>" . company-select-previous)
+              ("<tab>" . nil)
+              ("<backtab>" . nil)
+              ("TAB" . nil)
+              ("S-TAB" . nil)))
 
 (define-key! read-expression-map
   "C-j" #'next-line-or-history-element
@@ -210,40 +223,41 @@ _l_: move border right      _L_: swap border right
  "C-;" nil
  (:map special-mode-map "j" #'next-line "k" #'previous-line)
  (:map ryo-modal-mode-map
-  (:when (featurep! :ui hydra)
-   "C-w" #'+hydra/windower/body)
+  (:when (modulep! :ui hydra)
+    "C-w" #'+hydra/windower/body)
   "SPC" doom-leader-map
   :desc "Undo window config"           "[ w" #'winner-undo
   :desc "Redo window config"           "] w" #'winner-redo
   :desc "Search buffer"                 "/"   #'+default/search-buffer
   "P" #'yank-pop
-  (:when (featurep! :ui vc-gutter)
-   :desc "Jump to next hunk"          "] g"   #'git-gutter:next-hunk
-   :desc "Jump to previous hunk"      "[ g"   #'git-gutter:previous-hunk
-   :desc "Revert hunk"                "g R"   #'git-gutter:revert-hunk))
+  (:when (modulep! :ui vc-gutter)
+    :desc "Jump to next hunk"          "] g"   #'git-gutter:next-hunk
+    :desc "Jump to previous hunk"      "[ g"   #'git-gutter:previous-hunk
+    :desc "Revert hunk"                "g R"   #'git-gutter:revert-hunk))
  (:leader
-  (:when (featurep! :ui workspaces)
-   :desc "Switch to 1st workspace" "1" #'+workspace/switch-to-0
-   :desc "Switch to 2nd workspace" "2" #'+workspace/switch-to-1
-   :desc "Switch to 3rd workspace" "3" #'+workspace/switch-to-2
-   :desc "Switch to 4th workspace" "4" #'+workspace/switch-to-3
-   :desc "Switch to 5th workspace" "5" #'+workspace/switch-to-4
-   :desc "Switch to 6th workspace" "6" #'+workspace/switch-to-5
-   :desc "Switch to 7th workspace" "7" #'+workspace/switch-to-6
-   :desc "Switch to 8th workspace" "8" #'+workspace/switch-to-7
-   :desc "Switch to 9th workspace" "9" #'+workspace/switch-to-8
-   :desc "Switch to final workspace" "0" #'+workspace/switch-to-final)
+  (:when (modulep! :ui workspaces)
+    :desc "Switch to 1st workspace" "1" #'+workspace/switch-to-0
+    :desc "Switch to 2nd workspace" "2" #'+workspace/switch-to-1
+    :desc "Switch to 3rd workspace" "3" #'+workspace/switch-to-2
+    :desc "Switch to 4th workspace" "4" #'+workspace/switch-to-3
+    :desc "Switch to 5th workspace" "5" #'+workspace/switch-to-4
+    :desc "Switch to 6th workspace" "6" #'+workspace/switch-to-5
+    :desc "Switch to 7th workspace" "7" #'+workspace/switch-to-6
+    :desc "Switch to 8th workspace" "8" #'+workspace/switch-to-7
+    :desc "Switch to 9th workspace" "9" #'+workspace/switch-to-8
+    :desc "Switch to final workspace" "0" #'+workspace/switch-to-final)
   :desc "Help" "h" help-map
-  (:when (featurep! :tools magit)
-   :desc "Magit status"  "g"   #'magit-status
-   (:when (featurep! :ui hydra)
-    :desc "SMerge"  "s"   #'+hydra/smerge/body))
-  (:when (featurep! :completion helm)
-   "b" #'helm-mini)
-  (:when (featurep! :editor format)
-   :desc "Format buffer"   "="   #'format-all-buffer)
-  (:when (featurep! :tools taskrunner)
-   :desc "Run tasks"       "t"   #'+taskrunner/project-tasks)))
+  (:when (modulep! :tools magit)
+    :desc "Magit status"  "g"   #'magit-status
+    (:when (modulep! :ui hydra)
+      :desc "SMerge"  "s"   #'+hydra/smerge/body))
+  (:when (modulep! :completion helm)
+    "b" #'helm-mini)
+  (:when (modulep! :editor format)
+    :desc "Format buffer"   "="   #'format-all-buffer)
+  (:when (modulep! :tools taskrunner)
+    :desc "Run tasks"       "t"   #'+taskrunner/project-tasks)
+  :desc "Dired" "d" #'dired-jump))
 (setq +format-with-lsp nil)
 
 (after! projectile
@@ -253,26 +267,31 @@ _l_: move border right      _L_: swap border right
   (define-key! [remap projectile-compile-project] #'projectile-compile-project)
   (map! (:leader
          :desc "Search project"        "/" #'+default/search-project
-         (:when (featurep! :completion helm)
+         :desc "Find files"            "." #'find-file
+         (:when (modulep! :completion helm)
           :desc "search project"       "/" #'helm-do-ag-project-root)
          :desc "Find file in project"  "SPC"  #'projectile-find-file
          :desc "Jump to bookmark"      "RET"  #'bookmark-jump)))
 
 (use-package! embrace
+  :commands (embrace-commander)
   :ryo
   ("S" embrace-commander))
 
 (use-package! evil-nerd-commenter
+  :commands (evilnc-comment-or-uncomment-lines)
   :ryo
   (:mc-all t)
   ("'" evilnc-comment-or-uncomment-lines))
 
 (use-package! flycheck
+  :defer t
   :ryo
   ("] e" flycheck-next-error :first '(deactivate-mark))
   ("[ e" flycheck-previous-error :first '(deactivate-mark)))
 
 (use-package! avy
+  :defer t
   :ryo
   ("f" avy-goto-char-in-line :first '(deactivate-mark))
   ("F" avy-goto-char-in-line :first '(set-mark-if-inactive))
@@ -304,17 +323,20 @@ _l_: move border right      _L_: swap border right
         :desc "Dired" "d" #'dired-jump))
 
 (use-package! dired-narrow
+  :defer t
   :bind (:map dired-mode-map
          ("f" . dired-narrow)
          ("/" . dired-narrow)))
 
 (use-package! dired-subtree
+  :defer t
   :bind (:map dired-mode-map
          ("i" . dired-subtree-toggle)
          ("C-j" . dired-subtree-next-sibling)
          ("C-k" . dired-subtree-previous-sibling)))
 
 (use-package! peep-dired
+  :defer t
   :custom
   (peed-dired-cleanup-on-disable t)
   (peep-dired-enable-on-directories t)
@@ -325,6 +347,7 @@ _l_: move border right      _L_: swap border right
          ("k" . peep-dired-prev-file)))
 
 (use-package! magit
+  :commands (magit-status)
   :custom (git-commit-summary-max-length 68)
   :bind
   (:map magit-status-mode-map
@@ -343,15 +366,22 @@ _l_: move border right      _L_: swap border right
   (transient-append-suffix 'magit-merge 'magit-merge:--strategy-option
     '("-a" "Allow unrelated histories" "--allow-unrelated-histories")))
 
-(use-package! gh-notify)
+(use-package! gh-notify
+  :defer t)
 
 (use-package! haskell-mode
+  :defer t
   :hook
   (haskell-mode . (lambda ()
                     (haskell-indentation-mode 0)
                     (haskell-decl-scan-mode 1))))
 
+(use-package! lsp-haskell
+  :defer t
+  :custom ((lsp-haskell-formatting-provider "fourmolu")))
+
 (use-package! clj-refactor
+  :defer t
   :bind (:map clj-refactor-map ("/" . nil)))
 
 (map! :map +doom-dashboard-mode-map
@@ -360,6 +390,7 @@ _l_: move border right      _L_: swap border right
 
 ;; Bookmarks - https://github.com/joodland/bm
 (use-package! bm
+  :defer t
   :custom
   ((bm-cycle-all-buffers t)
    (bm-marker 'bm-marker-right))
@@ -401,15 +432,18 @@ _l_: move border right      _L_: swap border right
   (add-hook 'vc-before-checkin-hook #'bm-buffer-save))
 
 (use-package! disk-usage
+  :defer t
   :bind (:map disk-usage-mode-map
          ("j" . next-line)
          ("k" . previous-line)
          ("H" . disk-usage-toggle-human-readable)
          ("h" . disk-usage-up)
+         ("<left>" . disk-usage-up)
          :map dired-mode-map
          ("," . disk-usage-here)))
 
 (use-package! git-timemachine
+  :commands (git-timemachine)
   :ryo
   ("SPC G" git-timemachine)
   :bind
@@ -419,6 +453,7 @@ _l_: move border right      _L_: swap border right
    ("," . write-file)))
 
 (use-package! git-link
+  :commands (git-link)
   :custom (git-link-use-commit t))
 
 (use-package! popper
@@ -468,12 +503,12 @@ _l_: move border right      _L_: swap border right
        shell-command-prompt-show-cwd t)
 
 (use-package! shelldon
+  :bind (:map ryo-modal-mode-map
+              ("&" . shelldon-output-history)
+              ("e" . shelldon)
+              ("E" . shelldon-loop))
   :config
-  (map! :map ryo-modal-mode-map
-        "&" #'shelldon-output-history
-        "e" #'shelldon
-        "E" #'shelldon-loop)
-  (add-hook! 'shelldon-mode-hook
+  (add-hook 'shelldon-mode-hook
              #'(lambda () (view-mode-disable) (ryo-modal-mode))))
 
 (use-package! proced
@@ -485,6 +520,7 @@ _l_: move border right      _L_: swap border right
                   (revert-buffer)))))
 
 (use-package! notmuch
+  :commands (notmuch)
   :custom (notmuch-search-oldest-first nil)
   :config
   (setq! send-mail-function 'sendmail-sent-it
@@ -507,7 +543,7 @@ _l_: move border right      _L_: swap border right
            (:name "recurse" :query "to:@lists.community.recurse.com")))
   (map!
    "C-c m" #'notmuch
-   ;; (:when (featurep! :completion helm) "C-c m" #'helm-notmuch)
+   ;; (:when (modulep! :completion helm) "C-c m" #'helm-notmuch)
    :map notmuch-search-mode-map
    "u" #'notmuch-search-toggle-unread
    "f" #'notmuch-search-toggle-flagged
@@ -528,6 +564,7 @@ _l_: move border right      _L_: swap border right
    "K" #'notmuch-tag-jump))
 
 (use-package! highlight-indent-guides
+  :defer t
   :config
   (remove-hook! '(prog-mode-hook text-mode-hook conf-mode-hook)
     #'highlight-indent-guides-mode)
@@ -536,3 +573,9 @@ _l_: move border right      _L_: swap border right
 ;; (use-package! org-re-reveal
 ;;   :config
 ;;   (setq org-re-reveal-root "/home/joseph/Projects/reveal.js"))
+
+(use-package! ox-moderncv)
+
+;; (after! tree-sitter (global-tree-sitter-mode))
+(use-package! suggest
+  :commands (suggest))

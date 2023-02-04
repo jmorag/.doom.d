@@ -47,7 +47,7 @@
        ;;tabs              ; a tab bar for Emacs
        ;;treemacs          ; a project drawer, like neotree but cooler
        ;;unicode           ; extended unicode support for various languages
-       vc-gutter         ; vcs diff in the fringe
+       (vc-gutter +pretty)         ; vcs diff in the fringe
        vi-tilde-fringe   ; fringe tildes to mark beyond EOB
        ;;window-select     ; visually switch windows
        ;; workspaces        ; tab emulation, persistence & separate workspaces
@@ -96,7 +96,7 @@
        (eval +overlay)     ; run code, run (also, repls)
        ;;gist              ; interacting with github gists
        lookup              ; navigate your code and its documentation
-       lsp
+       (lsp)
        (magit +forge)             ; a git porcelain for Emacs
        make              ; run make tasks from Emacs
        pass              ; password manager for nerds
@@ -105,6 +105,7 @@
        ;;rgb               ; creating color strings
        taskrunner        ; taskrunner for all your projects
        terraform         ; infrastructure as code
+       tree-sitter       ; syntax and parsing, sitting in a tree...
        ;;tmux              ; an API for interacting with tmux
        ;;upload            ; map local to remote projects via ssh/ftp
 
@@ -146,18 +147,20 @@
        lilypond       ; totally the fastest way to write sheet music, no really
        ;;factor
        ;;ledger            ; an accounting system in Emacs
+       ;; hledger            ; an accounting system in Emacs, in Haskell
        ;;lua               ; one-based indices? one-based indices
        markdown          ; writing docs for people to ignore
        ;;nim               ; python + lisp at the speed of c
        nix               ; I hereby declare "nix geht mehr!"
        ocaml             ; an objective camel
        (org +dragndrop +hugo +present +pretty) ; organize your plain life in plain text
+       pollen              ; racket made of latex
        ;;php               ; perl's insecure younger brother
        ;;plantuml          ; diagrams for confusing people more
        ;;purescript        ; javascript, but functional
        (python +lsp +pyright)            ; beautiful is better than ugly
        ;;qt                ; the 'cutest' gui framework ever
-       ;;racket            ; a DSL for DSLs
+       racket            ; a DSL for DSLs
        ;;raku              ; the artist formerly known as perl6
        rest              ; Emacs as a REST client
        ;;rst               ; ReST in peace
@@ -172,9 +175,11 @@
        ;;swift             ; who asked for emoji variables?
        systemd           ; everyone's favorite init system
        ;;terra             ; Earth and Moon in alignment for performance.
-       ;; unison            ; all together now
+       (unison)            ; all together now
+       vimscript         ; for other people
        web               ; the tubes
        yaml              ; JSON, but readable
+       (zig +lsp)        ; C, but simpler
 
        :email
        ;;(mu4e +gmail)
