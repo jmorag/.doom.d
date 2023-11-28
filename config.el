@@ -29,7 +29,8 @@
 (unless IS-MAC (setq doom-variable-pitch-font "Linux Libertine O"))
 (when IS-MAC
   (setq doom-font (font-spec :family "Menlo" :size 15)
-        mac-command-modifier 'meta))
+        mac-command-modifier 'meta)
+  (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
 
 
 ;; If you use `org' and don't want your org files in the default location below,
@@ -100,6 +101,8 @@
 (use-package! key-seq
   :init
   (key-chord-mode 1)
+  (setq key-chord-safety-interval-forward 0)
+  (setq key-chord-safety-interval-backward 0)
   (defun ryo-enter () (interactive) (ryo-modal-mode 1))
   (key-seq-define-global "fd" #'ryo-enter)
   (global-set-key (kbd "<escape>") #'ryo-enter))
@@ -118,7 +121,7 @@
 (use-package! wgrep)
 
 (use-package! helm
-  :when (featurep! :completion helm)
+  :when (modulep! :completion helm)
   :bind (:map helm-map
          ("C-j" . helm-next-line)
          ("C-k" . helm-previous-line)
@@ -132,34 +135,45 @@
         helm-split-window-inside-p t))
 
 (use-package! helm-ag
-  :when (featurep! :completion helm))
+  :when (modulep! :completion helm))
 
 (use-package! helm-bibtex
-  :when (featurep! :completion helm)
+  :when (modulep! :completion helm)
   :custom ((helm-bibtex-full-frame nil)
            (bibtex-completion-bibliography '("~/NYU/references/papers.bib"))
            (bibtex-completion-library-path '("~/NYU/references/"))))
 
 (use-package! ivy
-  :when (or (featurep! :completion helm) (featurep! :completion ivy))
+  :when (or (modulep! :completion helm) (modulep! :completion ivy))
   :custom (ivy-wrap nil)
   :bind (:map ivy-minibuffer-map
          ("C-j" . ivy-next-line)
          ("C-k" . ivy-previous-line)))
 
 (use-package! vertico
-  :when (featurep! :completion vertico)
+  :when (modulep! :completion vertico)
+  :config
+  (setq vertico-cycle nil)
   :bind (:map vertico-map
-         ("C-j" . vertico-next)
-         ("C-k" . vertico-previous)))
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous)))
 
-(use-package! company
-  :bind (:map company-active-map
-         ("C-j" . company-select-next)
-         ("C-k" . company-select-previous)
-         ("<down>" . company-select-next)
-         ("<up>" . company-select-previous)
-         ("<tab>" . nil)))
+;; Un-binding tab has to happen _after_ enabling company-tng-mode apparently
+(after! company
+  (add-hook!
+   'company-tng-mode-hook
+   (map!
+    (:map company-active-map
+          "C-j" #'company-select-next
+          "C-k" #'company-select-previous
+          "<up>" #'company-select-next
+          "down" #'company-select-previous
+          "<tab>" nil
+          "TAB" nil)))
+
+  (when (modulep! :completion company +childframe)
+    (add-hook! 'company-box-mode-hook
+      (setq company-frontends '(company-tng-frontend company-box-frontend)))))
 
 (define-key! read-expression-map
   "C-j" #'next-line-or-history-element
@@ -170,40 +184,40 @@
  "C-;" nil
  (:map special-mode-map "j" #'next-line "k" #'previous-line)
  (:map ryo-modal-mode-map
-  (:when (featurep! :ui hydra)
-   "C-w" #'+hydra/windower/body)
+  (:when (modulep! :ui hydra)
+    "C-w" #'+hydra/windower/body)
   "SPC" doom-leader-map
   :desc "Undo window config"           "[ w" #'winner-undo
   :desc "Redo window config"           "] w" #'winner-redo
   :desc "Search buffer"                 "/"   #'+default/search-buffer
   "P" #'yank-pop
-  (:when (featurep! :ui vc-gutter)
-   :desc "Jump to next hunk"          "] g"   #'git-gutter:next-hunk
-   :desc "Jump to previous hunk"      "[ g"   #'git-gutter:previous-hunk
-   :desc "Revert hunk"                "g R"   #'git-gutter:revert-hunk))
+  (:when (modulep! :ui vc-gutter)
+    :desc "Jump to next hunk"          "] g"   #'git-gutter:next-hunk
+    :desc "Jump to previous hunk"      "[ g"   #'git-gutter:previous-hunk
+    :desc "Revert hunk"                "g R"   #'git-gutter:revert-hunk))
  (:leader
-  (:when (featurep! :ui workspaces)
-   :desc "Switch to 1st workspace" "1" #'+workspace/switch-to-0
-   :desc "Switch to 2nd workspace" "2" #'+workspace/switch-to-1
-   :desc "Switch to 3rd workspace" "3" #'+workspace/switch-to-2
-   :desc "Switch to 4th workspace" "4" #'+workspace/switch-to-3
-   :desc "Switch to 5th workspace" "5" #'+workspace/switch-to-4
-   :desc "Switch to 6th workspace" "6" #'+workspace/switch-to-5
-   :desc "Switch to 7th workspace" "7" #'+workspace/switch-to-6
-   :desc "Switch to 8th workspace" "8" #'+workspace/switch-to-7
-   :desc "Switch to 9th workspace" "9" #'+workspace/switch-to-8
-   :desc "Switch to final workspace" "0" #'+workspace/switch-to-final)
+  (:when (modulep! :ui workspaces)
+    :desc "Switch to 1st workspace" "1" #'+workspace/switch-to-0
+    :desc "Switch to 2nd workspace" "2" #'+workspace/switch-to-1
+    :desc "Switch to 3rd workspace" "3" #'+workspace/switch-to-2
+    :desc "Switch to 4th workspace" "4" #'+workspace/switch-to-3
+    :desc "Switch to 5th workspace" "5" #'+workspace/switch-to-4
+    :desc "Switch to 6th workspace" "6" #'+workspace/switch-to-5
+    :desc "Switch to 7th workspace" "7" #'+workspace/switch-to-6
+    :desc "Switch to 8th workspace" "8" #'+workspace/switch-to-7
+    :desc "Switch to 9th workspace" "9" #'+workspace/switch-to-8
+    :desc "Switch to final workspace" "0" #'+workspace/switch-to-final)
   :desc "Help" "h" help-map
-  (:when (featurep! :tools magit)
-   :desc "Magit status"  "g"   #'magit-status
-   (:when (featurep! :ui hydra)
-    :desc "SMerge"  "s"   #'+hydra/smerge/body))
-  (:when (featurep! :completion helm)
-   "b" #'helm-mini)
-  (:when (featurep! :editor format)
-   :desc "Format buffer"   "="   #'format-all-buffer)
-  (:when (featurep! :tools taskrunner)
-   :desc "Run tasks"       "t"   #'+taskrunner/project-tasks)))
+  (:when (modulep! :tools magit)
+    :desc "Magit status"  "g"   #'magit-status
+    (:when (modulep! :ui hydra)
+      :desc "SMerge"  "s"   #'+hydra/smerge/body))
+  (:when (modulep! :completion helm)
+    "b" #'helm-mini)
+  (:when (modulep! :editor format)
+    :desc "Format buffer"   "="   #'format-all-buffer)
+  (:when (modulep! :tools taskrunner)
+    :desc "Run tasks"       "t"   #'+taskrunner/project-tasks)))
 (setq +format-with-lsp nil)
 
 (after! projectile
@@ -213,8 +227,8 @@
   (define-key! [remap projectile-compile-project] #'projectile-compile-project)
   (map! (:leader
          :desc "Search project"        "/" #'+default/search-project
-         (:when (featurep! :completion helm)
-          :desc "search project"       "/" #'helm-do-ag-project-root)
+         (:when (modulep! :completion helm)
+           :desc "search project"       "/" #'helm-do-ag-project-root)
          :desc "Find file in project"  "SPC"  #'projectile-find-file
          :desc "Jump to bookmark"      "RET"  #'bookmark-jump)))
 
@@ -306,6 +320,10 @@
 (use-package! gh-notify)
 
 (use-package! haskell-mode
+  :custom
+  (haskell-process-suggest-remove-import-lines nil)
+  (haskell-process-type 'cabal-repl)
+  (haskell-process-suggest-add-package nil)
   :hook
   (haskell-mode . (lambda ()
                     (haskell-indentation-mode 0)
@@ -404,7 +422,7 @@
           helpful-mode
           compilation-mode
           Man-mode
-          Comint
+          ;; Comint
           haskell-interactive-mode
           inferior-python-mode)
         popper-group-function #'popper-group-by-projectile)
@@ -467,7 +485,7 @@
            (:name "recurse" :query "to:@lists.community.recurse.com")))
   (map!
    "C-c m" #'notmuch
-   ;; (:when (featurep! :completion helm) "C-c m" #'helm-notmuch)
+   ;; (:when (modulep! :completion helm) "C-c m" #'helm-notmuch)
    :map notmuch-search-mode-map
    "u" #'notmuch-search-toggle-unread
    "f" #'notmuch-search-toggle-flagged
@@ -487,11 +505,11 @@
    ";" #'notmuch-jump-search
    "K" #'notmuch-tag-jump))
 
-(use-package! highlight-indent-guides
-  :config
-  (remove-hook! '(prog-mode-hook text-mode-hook conf-mode-hook)
-    #'highlight-indent-guides-mode)
-  (add-hook! 'shakespeare-hamlet-mode-hook #'highlight-indent-guides-mode))
+;; (use-package! highlight-indent-guides
+;;   :config
+;;   (remove-hook! '(prog-mode-hook text-mode-hook conf-mode-hook)
+;;     #'highlight-indent-guides-mode)
+;;   (add-hook! 'shakespeare-hamlet-mode-hook #'highlight-indent-guides-mode))
 
 ;; (use-package! org-re-reveal
 ;;   :config
