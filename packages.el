@@ -51,6 +51,7 @@
 
 (when (featurep! :editor evil)
   (package! expand-region))
+(package! key-chord :pin "68264d09593e69c1d4773859ac570bd9feb008d9")
 (package! key-seq)
 (package! ryo-modal :recipe (:repo "jmorag/ryo-modal"))
 (package! kakoune :recipe (:local-repo "~/Projects/kakoune.el/" :files ("*.el")))
@@ -70,8 +71,9 @@
 (package! disk-usage)
 (package! git-link)
 (package! popper)
+(package! org-cv :recipe (:local-repo "~/Projects/org-cv"))
 ;; TODO: this could be a problem. See https://discourse.doomemacs.org/t/development-roadmap/42#do-not-pr
-(package! format-all :pin "3a15ba2")
+;; (package! format-all :pin "3a15ba2")
 (when (featurep! :completion helm)
   (package! helm-system-packages)
   ;; wgrep doesn't come with helm for some reason

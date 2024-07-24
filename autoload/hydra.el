@@ -1,7 +1,7 @@
 ;;; autoload/hydra.el -*- lexical-binding: t; -*-
 ;;;###if (featurep! :ui hydra)
 
-;;;###autoload (autoload '+hydra/windower/body "me/windower/autoload" nil t)
+;;;###autoload
 (defhydra +hydra/windower (:hint nil)
   "
 ^Move^                      ^Swap^
@@ -33,7 +33,7 @@ _l_: move border right      _L_: swap border right
   ("q" nil "cancel" :color blue)
   ("<return>" nil nil))
 
-;;;###autoload (autoload '+hydra/smerge/body "me/smerge/autoload" nil t)
+;;;###autoload
 (defhydra +hydra/smerge ()
   "A hydra for smerge"
   ("j" smerge-next "next conflict")

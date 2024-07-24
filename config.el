@@ -26,11 +26,11 @@
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
 (setq doom-theme 'doom-solarized-dark-high-contrast)
-(unless IS-MAC (setq doom-variable-pitch-font "Linux Libertine O"))
-(when IS-MAC
+(unless (featurep :system 'macos) (setq doom-variable-pitch-font "Linux Libertine O"))
+(when (featurep :system 'macos)
   (setq doom-font (font-spec :family "Menlo" :size 15)
         mac-command-modifier 'meta)
-  (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
+  (add-to-list 'default-frame-alist '(fullscreen . maximized)))
 
 
 ;; If you use `org' and don't want your org files in the default location below,
@@ -167,13 +167,30 @@
           "C-j" #'company-select-next
           "C-k" #'company-select-previous
           "<up>" #'company-select-next
-          "down" #'company-select-previous
+          "<down>" #'company-select-previous
+          "<tab>" nil
+          "TAB" nil)
+    (:map company-tng-map
+          "C-j" #'company-select-next
+          "C-k" #'company-select-previous
+          "<up>" #'company-select-next
+          "<down>" #'company-select-previous
           "<tab>" nil
           "TAB" nil)))
 
   (when (modulep! :completion company +childframe)
     (add-hook! 'company-box-mode-hook
       (setq company-frontends '(company-tng-frontend company-box-frontend)))))
+
+(after! corfu
+  (map!
+   (:map corfu-map
+         "C-j" #'corfu-next
+         "C-k" #'corfu-previous
+         "TAB" nil
+         "S-TAB" nil
+         "<tab>" nil
+         "<backtab>" nil)))
 
 (define-key! read-expression-map
   "C-j" #'next-line-or-history-element
@@ -214,8 +231,8 @@
       :desc "SMerge"  "s"   #'+hydra/smerge/body))
   (:when (modulep! :completion helm)
     "b" #'helm-mini)
-  (:when (modulep! :editor format)
-    :desc "Format buffer"   "="   #'format-all-buffer)
+  ;; (:when (modulep! :editor format)
+  ;;   :desc "Format buffer"   "="   #'format-all-buffer)
   (:when (modulep! :tools taskrunner)
     :desc "Run tasks"       "t"   #'+taskrunner/project-tasks)))
 (setq +format-with-lsp nil)
@@ -320,14 +337,19 @@
 (use-package! gh-notify)
 
 (use-package! haskell-mode
-  :custom
-  (haskell-process-suggest-remove-import-lines nil)
-  (haskell-process-type 'cabal-repl)
-  (haskell-process-suggest-add-package nil)
-  :hook
-  (haskell-mode . (lambda ()
-                    (haskell-indentation-mode 0)
-                    (haskell-decl-scan-mode 1))))
+  :config
+  (setq haskell-process-suggest-remove-import-lines nil)
+  (setq haskell-process-type 'cabal-repl)
+  (setq haskell-process-suggest-add-package nil)
+  (setq lsp-haskell-formatting-provider "fourmolu")
+  (setq lsp-haskell-plugin-hlint-diagnostics-on nil)
+  (setq lsp-haskell-plugin-hlint-code-actions-on nil)
+  (setq lsp-haskell-plugin-stan-global-on nil)
+  (remove-hook! 'haskell-mode-hook #'haskell-indentation-mode)
+  (add-hook! 'haskell-mode-hook #'haskell-decl-scan-mode)
+  ;; really do not want this on
+  (add-hook! 'haskell-mode-hook
+    (defun turn-off-haskell-indentation-mode () (haskell-indentation-mode 0))))
 
 (use-package! clj-refactor
   :bind (:map clj-refactor-map ("/" . nil)))
